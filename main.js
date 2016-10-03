@@ -68,13 +68,13 @@ function SpaceGame(space, game){
     // key presses
     if (_this.keys){
       if (_this.keys[37] || _this.keys[65]){ // left
-        _this.ship.right();
+        _this.ship.left();
       }
       if (_this.keys[38] || _this.keys[87]){ // up
         _this.ship.forward();
       }
       if (_this.keys[39] || _this.keys[68]){ // right
-        _this.ship.left();
+        _this.ship.right();
       }
       if (_this.keys[40] || _this.keys[83]){ // down
         _this.ship.reverse();
@@ -177,35 +177,36 @@ function Ship(name, id, x, y, mass, game){
   };
   this.update = function(){
 
-    console.log(this.r);
-    console.log(this.v.x, this.v.y);
-
     // apply acceleration
-    this.x += this.v.x/10;
-    this.y += this.v.y/10;
+    this.x += this.v.x;
+    this.y += this.v.y;
     this.r += this.v.r;
-
 
     // wrap rotation
     if (this.r > 360 || this.r < -360){ this.r = 0; }
 
-    this.v.r = 0;
-
     // draw
     this.draw();
   };
-  this.forward = function(){
-    if (this.v.x < 10){ this.v.x += Math.cos(this.r); }
-    if (this.v.y < 10){ this.v.y -= Math.sin(this.r); }
+  this.thrust = function(rad){
+    this.v.x += Math.cos(rad);
+    this.v.y += Math.sin(rad);
   };
-  this.reverse = function(){
-    if (this.v.x > -10){ this.v.x -= Math.cos(this.r); }
-    if (this.v.y > -10){ this.v.y += Math.sin(this.r); }
+  this.forward = function(){
+    var rad = this.r * Math.PI / 180;
+    this.thrust(rad);
   };
   this.left = function(){
-
+    var rad = this.r-90 * Math.PI / 180;
+    this.thrust(rad);
   };
   this.right = function(){
-
+    var rad = this.r+90 * Math.PI / 180;
+    this.thrust(rad);
+  };
+  this.reverse = function(){
+    var rad = this.r * Math.PI / 180;
+    if (this.v.x > -10){ this.v.x -= Math.cos(rad); }
+    if (this.v.y > -10){ this.v.y -= Math.sin(rad); }
   };
 }
