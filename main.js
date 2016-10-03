@@ -50,7 +50,7 @@ function SpaceGame(space, game){
   this.init = function(){
     this.space.start();
     this.game.start();
-    this.ship = new Ship("Python", 1, 500, 300, 100, this.game);
+    this.ship = new Ship("Python", 1, window.innerWidth/2, window.innerHeight *0.75, 100, this.game);
     window.addEventListener('keydown', function(e){
       _this.keys = (_this.keys || []);
       _this.keys[e.keyCode] = true;
@@ -67,35 +67,21 @@ function SpaceGame(space, game){
 
     // key presses
     if (_this.keys){
-      if (_this.keys[37] || _this.keys[65]){ // left
-        _this.ship.thrust('left');
-      }
-      if (_this.keys[38] || _this.keys[87]){ // up
-        _this.ship.thrust('forward');
-      }
-      if (_this.keys[39] || _this.keys[68]){ // right
-        _this.ship.thrust('right');
-      }
-      if (_this.keys[40] || _this.keys[83]){ // down
-        _this.ship.thrust('reverse');
-      }
-      if (_this.keys[88] || _this.keys[190]){ // spin right
-        if (_this.ship.v.r < 10 ){ _this.ship.v.r++; }
-      }
-      if (_this.keys[90] || _this.keys[188]){ // spin left
-        if (_this.ship.v.r > -10){ _this.ship.v.r--; }
-      }
-
-      if (_this.keys[32]){ // arrest
-        _this.ship.arrest();
-      }
+      // trust
+      if (_this.keys[37] || _this.keys[65]){ _this.ship.thrust('left'); }
+      if (_this.keys[38] || _this.keys[87]){ _this.ship.thrust('forward'); }
+      if (_this.keys[39] || _this.keys[68]){ _this.ship.thrust('right'); }
+      if (_this.keys[40] || _this.keys[83]){ _this.ship.thrust('reverse'); }
+      if (_this.keys[32]){ _this.ship.arrestThrust(); }
+      // roation
+      if (_this.keys[88] || _this.keys[190]){ _this.ship.turn('left'); }
+      else if (_this.keys[90] || _this.keys[188]){ _this.ship.turn('right'); }
+      else { _this.ship.arrestRoll();}
     }
 
     // update
     _this.ship.update();
-    for (var i in _this.components){
-      _this.components[i].update();
-    }
+    for (var i in _this.components){ _this.components[i].update(); }
   };
 }
 
@@ -126,7 +112,7 @@ function Ship(name, id, x, y, mass, game){
   this.id = id;
   this.x = x;
   this.y = y;
-  this.r = 0;
+  this.r = -90;
   this.v = {
     x: 0,
     y: 0,
@@ -206,32 +192,45 @@ function Ship(name, id, x, y, mass, game){
         break;
       case 'reverse':
         rad = this.r * Math.PI / 180;
-        this.v.x -= Math.cos(rad);
-        this.v.y -= Math.sin(rad);
+        this.v.x -= Math.cos(rad)/10;
+        this.v.y -= Math.sin(rad)/10;
         return;
       default: break;
     }
 
-    this.v.x += Math.cos(rad);
-    this.v.y += Math.sin(rad);
+    this.v.x += Math.cos(rad)/10;
+    this.v.y += Math.sin(rad)/10;
   };
-  this.arrest = function(){
+  this.turn = function(dir){
+    if (dir == 'left'){
+      if (this.v.r < 10 ){ this.v.r += 0.1; }
+    } else if (dir == 'right'){
+      if (this.v.r > -10){ this.v.r -= 0.1; }
+    }
+  };
+  this.arrestRoll = function(){
+    var rate = 0.2;
+    if        (this.v.r > rate )    { this.v.r -= rate ; }
+    else if   (this.v.r < -rate )   { this.v.r += rate ; }
+    else                            { this.v.r = 0; }
+  };
+  this.arrestThrust = function(){
+    var rate = 0.1;
     // x
-    if (this.v.x > 0.3){ this.v.x-=0.3; }
-    else if (this.v.x < -0.3){ this.v.x+=0.3; }
-    else { this.v.x = 0; }
+    if        (this.v.x > rate )    { this.v.x -= rate ; }
+    else if   (this.v.x < -rate )   { this.v.x += rate ; }
+    else                            { this.v.x = 0; }
     // y
-    if (this.v.y > 0.3){ this.v.y-=0.3; }
-    else if (this.v.y < -0.3){ this.v.y+=0.3; }
-    else { this.v.y = 0; }
-    // r
-    if (this.v.r > 0.3){ this.v.r-=0.3; }
-    else if (this.v.r < -0.3){ this.v.r+=0.3; }
-    else { this.v.r = 0; }
+    if        (this.v.y > rate )    { this.v.y -= rate ; }
+    else if   (this.v.y < -rate )   { this.v.y += rate ; }
+    else                            { this.v.y = 0; }
   };
 }
 
-function Laser(x,y,r){
-  this.x = x;
-  this.y = y;
-}
+// function Laser(x,y,r){
+//   this.x = x;
+//   this.y = y;
+//   this.v = {
+//     x: Math.sin(r * )
+//   }
+// }
