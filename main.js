@@ -68,22 +68,26 @@ function SpaceGame(space, game){
     // key presses
     if (_this.keys){
       if (_this.keys[37] || _this.keys[65]){ // left
-        _this.ship.left();
+        _this.ship.thrust('left');
       }
       if (_this.keys[38] || _this.keys[87]){ // up
-        _this.ship.forward();
+        _this.ship.thrust('forward');
       }
       if (_this.keys[39] || _this.keys[68]){ // right
-        _this.ship.right();
+        _this.ship.thrust('right');
       }
       if (_this.keys[40] || _this.keys[83]){ // down
-        _this.ship.reverse();
+        _this.ship.thrust('reverse');
       }
       if (_this.keys[88] || _this.keys[190]){ // spin right
         if (_this.ship.v.r < 10 ){ _this.ship.v.r++; }
       }
       if (_this.keys[90] || _this.keys[188]){ // spin left
         if (_this.ship.v.r > -10){ _this.ship.v.r--; }
+      }
+
+      if (_this.keys[32]){ // arrest
+        _this.ship.arrest();
       }
     }
 
@@ -188,25 +192,46 @@ function Ship(name, id, x, y, mass, game){
     // draw
     this.draw();
   };
-  this.thrust = function(rad){
+  this.thrust = function(dir){
+    var rad = 0;
+    switch (dir) {
+      case 'forward':
+        rad = this.r * Math.PI / 180;
+        break;
+      case 'left':
+        rad = (this.r-90) * Math.PI / 180;
+        break;
+      case 'right':
+        rad = (this.r+90) * Math.PI / 180;
+        break;
+      case 'reverse':
+        rad = this.r * Math.PI / 180;
+        this.v.x -= Math.cos(rad);
+        this.v.y -= Math.sin(rad);
+        return;
+      default: break;
+    }
+
     this.v.x += Math.cos(rad);
     this.v.y += Math.sin(rad);
   };
-  this.forward = function(){
-    var rad = this.r * Math.PI / 180;
-    this.thrust(rad);
+  this.arrest = function(){
+    // x
+    if (this.v.x > 0.3){ this.v.x-=0.3; }
+    else if (this.v.x < -0.3){ this.v.x+=0.3; }
+    else { this.v.x = 0; }
+    // y
+    if (this.v.y > 0.3){ this.v.y-=0.3; }
+    else if (this.v.y < -0.3){ this.v.y+=0.3; }
+    else { this.v.y = 0; }
+    // r
+    if (this.v.r > 0.3){ this.v.r-=0.3; }
+    else if (this.v.r < -0.3){ this.v.r+=0.3; }
+    else { this.v.r = 0; }
   };
-  this.left = function(){
-    var rad = this.r-90 * Math.PI / 180;
-    this.thrust(rad);
-  };
-  this.right = function(){
-    var rad = this.r+90 * Math.PI / 180;
-    this.thrust(rad);
-  };
-  this.reverse = function(){
-    var rad = this.r * Math.PI / 180;
-    if (this.v.x > -10){ this.v.x -= Math.cos(rad); }
-    if (this.v.y > -10){ this.v.y -= Math.sin(rad); }
-  };
+}
+
+function Laser(x,y,r){
+  this.x = x;
+  this.y = y;
 }
