@@ -13,3 +13,15 @@ canvas {
 
 #space { z-index: 0; }
 #game { z-index: 1; }
+#hud {
+  position: absolute;
+  top: auto;
+  bottom: 10px;
+  left: 10px;
+  /*width: 500px;
+  height: 500px;*/
+  z-index: 2;
+  border: 2px solid orange;
+  border-radius: 10px;
+  background-color: rgba(0, 0, 0, 0.5);
+ }
