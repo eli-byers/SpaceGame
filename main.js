@@ -62,10 +62,13 @@ function SpaceGame(space, game, hud){
   this.keys = [];
   this.components = [];
   this.init = function(){
+    // init canvases
     this.space.start();
     this.game.start();
     this.hud.start();
-    this.ship = new Ship("Python", 1, window.innerWidth/2, window.innerHeight *0.75, 100);
+    // make player ship
+    this.ship = new Ship("Python", 1, window.innerWidth/2, window.innerHeight * 0.75, 100, 100, 100);
+    // set up key listeners
     window.addEventListener('keydown', function(e){
       t.keys = (t.keys || []);
       t.keys[e.keyCode] = true;
@@ -73,6 +76,7 @@ function SpaceGame(space, game, hud){
     window.addEventListener('keyup', function(e){
       t.keys[e.keyCode] = false;
     });
+    // start game l
     this.interval = setInterval(this.updateGameArea, 20);
   };
   this.updateGameArea = function(){
@@ -182,14 +186,19 @@ function Planet(name, id, x, y, r, mass){
   };
 }
 
-function Ship(name, id, x, y, mass){
+function Ship(name, id, x, y, mass, shield, hull){
   var self = this;
-  this.name = name;
   this.id = id;
+  this.name = name;
+  this.mass = mass;
+  this.shield = shield;
+  this.hull = hull;
+
+  // positin - velocity - acceleration
   this.pos = {
     x : x,
     y : y,
-    r : -90
+    r : -90,
   };
   this.v = {
     x : 0,
@@ -216,7 +225,7 @@ function Ship(name, id, x, y, mass){
       var startV = this.total;
       this.total = Math.abs(this.x)+Math.abs(this.y)+Math.abs(this.r);
       var endV = this.total;
-      console.log(parseInt(this.total), (startV - endV) );
+      // console.log(parseInt(this.total), (startV - endV) );
       return this.total;
     }
   };
@@ -226,24 +235,7 @@ function Ship(name, id, x, y, mass){
     r       : 0.1,
   };
 
-  this.update = function(){
-
-    // limits acceleration
-    this.v.limit();
-    // calculate total acceleration
-    this.v.setTotal();
-
-    // apply velocity
-    this.pos.x += this.v.x;
-    this.pos.y += this.v.y;
-    this.pos.r += this.v.r;
-    // wrap rotation
-    if (this.pos.r > 360 || this.pos.r < -360){ this.pos.r = 0; }
-
-    // DEBUG
-    this.worldWrap();
-  };
-
+  // movement
   this.thrust = {
     left     : function(){
       rad = (self.pos.r-90) * Math.PI / 180;
@@ -310,6 +302,26 @@ function Ship(name, id, x, y, mass){
       }
     },
   };
+
+  // methods
+  this.update = function(){
+
+    // limits acceleration
+    this.v.limit();
+    // calculate total acceleration
+    this.v.setTotal();
+
+    // apply velocity
+    this.pos.x += this.v.x;
+    this.pos.y += this.v.y;
+    this.pos.r += this.v.r;
+    // wrap rotation
+    if (this.pos.r > 360 || this.pos.r < -360){ this.pos.r = 0; }
+
+    // DEBUG
+    this.worldWrap();
+  };
+
   /////////////////////////////  DEBUG  ///////////////////////////////////
   this.worldWrap = function(){
     var border = 70;
