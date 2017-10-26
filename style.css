@@ -1,8 +1,11 @@
-body {
-  background-image: url("space.jpg");
-  background-size: cover;
-  padding: 15px 0 0 0;
-  text-align: center;
+#bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  /* Preserve aspet ratio */
+  min-width: 100vw;
+  min-height: 100vh;
 }
 
 canvas {
@@ -18,8 +21,6 @@ canvas {
   top: auto;
   bottom: 10px;
   left: 10px;
-  /*width: 500px;
-  height: 500px;*/
   z-index: 2;
   border: 2px solid orange;
   border-radius: 10px;

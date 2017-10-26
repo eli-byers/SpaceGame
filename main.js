@@ -161,7 +161,7 @@ var hud = {
     this.context.clearRect(x, this.padding, 20, this.barHeight);
   },
   clearShip : function(){
-    this.context.clearRect(this.canvas.width - 180, this.padding, 160, this.barHeight);
+    this.context.clearRect(this.canvas.width - 195, 5, 190, this.canvas.height-10);
   },
 };
 
@@ -227,16 +227,16 @@ function SpaceGame(space, game, hud){
       // turn
       if      (self.keys[88] || self.keys[190]) { self.ship.rotate.left();   }
       else if (self.keys[90] || self.keys[188]) { self.ship.rotate.right();  }
-      else                                { self.ship.rotate.arrest(); }
+      else                                      { self.ship.rotate.arrest(); }
       // thrust
       if (self.keys[37] || self.keys[65]) { self.ship.thrust.left();     }
       if (self.keys[38] || self.keys[87]) { self.ship.thrust.forward();  }
       if (self.keys[39] || self.keys[68]) { self.ship.thrust.right();    }
       if (self.keys[40] || self.keys[83]) { self.ship.thrust.reverse();  }
-      if (self.keys[16])               { self.ship.thrust.arrest(); }
+      if (self.keys[16])                  { self.ship.thrust.arrest();   }
       // boost
-      if (self.keys[32]) { self.ship.boost.charge(); }
-      else            { self.ship.boost.activate(); }
+      if (self.keys[32]) { self.ship.boost.charge();   }
+      else               { self.ship.boost.activate(); }
     }
   };
   this.draw = {
@@ -294,6 +294,7 @@ function SpaceGame(space, game, hud){
       this.vVector();
       this.vRotation();
       this.accRotation();
+      this.accVector();
     },
     // init base values
     initBars : function(){
@@ -376,28 +377,32 @@ function SpaceGame(space, game, hud){
       var x = self.hud.canvas.width-100;
       var y = 150;
       var rad = Math.atan2(self.ship.v.y*10, self.ship.v.x*10) - (self.ship.pos.r * (Math.PI/180) - (Math.PI) ); // In radians
-      var length = self.ship.v.total > 0.1 ? 70 : 0;
+      var length = (Math.log(self.ship.v.total)+5)*10;
 
-      var ctx = self.hud.context;
-      ctx.save();
-      ctx.beginPath();
-      ctx.fillStyle = 'red';
-      ctx.translate(x, y);
-      ctx.rotate(rad);
-      ctx.fillRect(-3,0, 6, length);
-      if (length) {
+      if (length > 0){
+        var ctx = self.hud.context;
+        ctx.save();
+        // line
+        ctx.beginPath();
+        ctx.fillStyle = 'red';
+        ctx.translate(x, y);
+        ctx.rotate(rad);
+        ctx.fillRect(-3,0, 6, length);
+        // point
         ctx.moveTo(0, length+5);
         ctx.lineTo(-10,length-10);
         ctx.lineTo(10,length-10);
         ctx.fill();
+
+        ctx.restore();
       }
-      ctx.restore();
+
     },
     vRotation : function(){
       var rot = self.ship.v.r;
       var ctx = self.hud.context;
       var x = self.hud.canvas.width-100;
-      var y = 80;
+      var y = 85;
       var start, end;
       ctx.strokeStyle = 'red';
       ctx.beginPath();
@@ -408,31 +413,51 @@ function SpaceGame(space, game, hud){
         end = Math.PI*1.5;
         start = (Math.PI*1.5) + (rot/3);
       }
-      ctx.arc(x, y, 40, start, end);
+      ctx.arc(x, y, 60, start, end);
       ctx.stroke();
-
-      // console.log(rot);
     },
     accRotation : function(){
       var acc = self.ship.acc.r;
-      console.log(acc);
-
       var ctx = self.hud.context;
       var x = self.hud.canvas.width-100;
-      var y = 80;
+      var y = 85;
       var start, end;
-      ctx.strokeStyle = 'teal';
+      ctx.strokeStyle = '#36c5cf';
       ctx.lineWidth = '6';
       ctx.beginPath();
       if (acc > 0){
-        end = (Math.PI*1.5) + (acc*17);
+        end = (Math.PI*1.5) + (acc*85);
         start = Math.PI*1.5;
       } else if (acc < 0){
         end = Math.PI*1.5;
-        start = (Math.PI*1.5) + (acc*17);
+        start = (Math.PI*1.5) + (acc*85);
       }
-      ctx.arc(x, y, 30, start, end);
+      ctx.arc(x, y, 50, start, end);
       ctx.stroke();
+    },
+    accVector : function(){
+      var x = self.hud.canvas.width-100;
+      var y = 150;
+      var rad = Math.atan2(self.ship.acc.y*10, self.ship.acc.x*10) - (self.ship.pos.r * (Math.PI/180) - (Math.PI) ); // In radians
+      var length = (Math.abs(self.ship.acc.y)+Math.abs(self.ship.acc.x))*3000;
+
+      if (length > 0){
+        var ctx = self.hud.context;
+        ctx.save();
+        // line
+        ctx.beginPath();
+        ctx.fillStyle = '#36c5cf';
+        ctx.translate(x, y);
+        ctx.rotate(rad);
+        ctx.fillRect(-3,0, 6, length);
+        // point
+        ctx.moveTo(0, length+5);
+        ctx.lineTo(-10,length-10);
+        ctx.lineTo(10,length-10);
+        ctx.fill();
+
+        ctx.restore();
+      }
 
     },
   };
@@ -463,7 +488,7 @@ function Ship(name, id, x, y, mass, shield, hull){
   var self = this;
   this.id = id;
   this.name = name;
-  this.mass = 2000;
+  this.mass = 5000;
   this.fuel = {
     tank    : 1000,
     reserve : 500,
@@ -492,17 +517,13 @@ function Ship(name, id, x, y, mass, shield, hull){
   this.pos = {
     x : x,
     y : y,
-    r : -90,
+    r : 270,
   };
   this.v = {
     // base
     x : 0,
     y : 0,
     r : 0,
-
-    // used for arrest
-    rHalf : 0,
-    rArrest : false,
 
     // limits
     xLimit  : 25,
@@ -528,94 +549,98 @@ function Ship(name, id, x, y, mass, shield, hull){
       var endV = this.total;
     }
   };
+  this.accRate = this.engines.thrust/this.mass;
   this.acc = {
     x : 0,
     y : 0,
     r : 0,
 
-    xLimit : 0.1,
-    yLimit : 0.1,
-    rLimit : 0.1,
+    xLimit : 1/this.accRate,
+    yLimit : 1/this.accRate,
+    rLimit : 1/this.accRate,
 
     limit : function(){
-      // x
-      if (this.x >  this.xLimit) { this.x =  this.xLimit; }
-      if (this.x < -this.xLimit) { this.x = -this.xLimit; }
-      // y
-      if (this.y >  this.yLimit) { this.y =  this.yLimit; }
-      if (this.y < -this.yLimit) { this.y = -this.yLimit; }
+      // // x
+      // if (this.x >  this.xLimit) { this.x =  this.xLimit; }
+      // if (this.x < -this.xLimit) { this.x = -this.xLimit; }
+      // // y
+      // if (this.y >  this.yLimit) { this.y =  this.yLimit; }
+      // if (this.y < -this.yLimit) { this.y = -this.yLimit; }
       // r
       if (this.r >  this.rLimit) { this.r =  this.rLimit; }
       if (this.r < -this.rLimit) { this.r = -this.rLimit; }
     }
   };
   // used: v += 1/accRate => higher numbers slow down acceleratino
-  this.accRate = this.mass/this.engines.thrust;
 
   // movement
   this.thrust = {
     left     : function(){
       rad = (self.pos.r-90) * Math.PI / 180;
-      self.v.x += Math.cos(rad)/self.accRate;
-      self.v.y += Math.sin(rad)/self.accRate;
+      self.acc.x = Math.cos(rad) * self.accRate;
+      self.acc.y = Math.sin(rad) * self.accRate;
     },
     right    : function(){
       rad = (self.pos.r+90) * Math.PI / 180;
-      self.v.x += Math.cos(rad)/self.accRate;
-      self.v.y += Math.sin(rad)/self.accRate;
+      self.acc.x = Math.cos(rad) * self.accRate;
+      self.acc.y = Math.sin(rad) * self.accRate;
     },
     forward  : function(){
       rad = self.pos.r * Math.PI / 180;
-      self.v.x += Math.cos(rad)/self.accRate;
-      self.v.y += Math.sin(rad)/self.accRate;
+      self.acc.x = Math.cos(rad) * self.accRate;
+      self.acc.y = Math.sin(rad) * self.accRate;
     },
     reverse  : function(){
       rad = self.pos.r * Math.PI / 180;
-      self.v.x -= Math.cos(rad)/self.accRate;
-      self.v.y -= Math.sin(rad)/self.accRate;
+      self.acc.x = -Math.cos(rad) * self.accRate;
+      self.acc.y = -Math.sin(rad) * self.accRate;
     },
     arrest   : function(){
-      var rate = 0.1;
       // x
-      if        (self.v.x > rate )    { self.v.x -= rate ; }
-      else if   (self.v.x < -rate )   { self.v.x += rate ; }
-      else                            { self.v.x = 0; }
+      if        (self.v.x > self.accRate )    { self.acc.x = -self.accRate ; }
+      else if   (self.v.x < -self.accRate )   { self.acc.x = self.accRate ; }
+      else                                    { self.acc.x = 0; }
       // y
-      if        (self.v.y > rate )    { self.v.y -= rate ; }
-      else if   (self.v.y < -rate )   { self.v.y += rate ; }
-      else                            { self.v.y = 0; }
+      if        (self.v.y > self.accRate )    { self.acc.y = -self.accRate ; }
+      else if   (self.v.y < -self.accRate )   { self.acc.y = self.accRate ; }
+      else                                    { self.acc.y = 0; }
     },
   };
   this.rotate = {
-    rate : 1/(self.accRate*20),
     left    : function(){
-      self.v.rArrest = false;
-      self.acc.r += this.rate;
+      this.aligning = false;
+      self.acc.r = self.accRate;
+
     },
     right   : function(){
-      self.v.rArrest = false;
-      self.acc.r -= this.rate;
+      this.aligning = false;
+      self.acc.r = -self.accRate;
     },
-    arrest  : function(){
-      if (!self.v.rArrest){
-        self.v.rArrest = true;
-        self.v.rHalf = self.v.r / 2;
-        self.acc.r = 0;
-      } else {
-        if ( self.v.r > 1 || self.v.r < -1){
-          if      (self.v.r > self.v.rHalf)  { self.acc.r -= this.rate; }
-          else if (self.v.r < self.v.rHalf) { self.acc.r += this.rate; }
+    arrest  : function(dir){
+      if (!this.aligning){
+        if ( self.v.r > self.accRate ){
+          self.acc.r = -self.accRate;
+        } else if (self.v.r < -self.accRate){
+          self.acc.r = self.accRate;
         } else {
           self.v.r = 0;
           self.acc.r = 0;
         }
       }
+    },
+
+    aligning : false,
+    alignTo : function(dir){
+      console.log(dir);
     }
   };
   this.boost = {
     power : 0,
     powerLimit : 50,
     ready : false,
+    boosting : false,
+    boosted : false,
+    dir : 0,
 
     charge : function(){
       if (!this.ready){
@@ -629,10 +654,23 @@ function Ship(name, id, x, y, mass, shield, hull){
       this.power = 0;
       if (this.ready){
         this.ready = false;
-        rad = self.pos.r * Math.PI / 180;
-        self.v.x = Math.cos(rad)*10;
-        self.v.y = Math.sin(rad)*10;
-        self.v.r = 0;
+        this.boosting = true;
+        this.dir = self.pos.r * Math.PI / 180;
+      }
+      if (this.boosted){
+        this.boosted = false;
+        self.acc.x = 0;
+        self.acc.y = 0;
+      }
+      if (this.boosting){
+        this.boosting = false;
+        this.boosted = true;
+        self.acc.x = Math.cos(this.dir)*10;
+        self.acc.y = Math.sin(this.dir)*10;
+
+        if (self.v.x == Math.cos(this.dir)*10 && self.v.y == Math.sin(this.dir)*10 && self.pos.r == this.dir){
+          console.log("done");
+        }
       }
     },
   };
@@ -646,8 +684,10 @@ function Ship(name, id, x, y, mass, shield, hull){
     this.pos.x += this.v.x;     // applys v to pos
     this.pos.y += this.v.y;
     this.pos.r += this.v.r;
+
     // wrap rotation
-    if (this.pos.r > 360 || this.pos.r < -360){ this.pos.r = 0; }
+    if (this.pos.r > 360){ this.pos.r -= 360; }
+    if (this.pos.r < 0){ this.pos.r = 360 + this.pos.r; }
 
     // DEBUG
     this.worldWrap();
